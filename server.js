@@ -30,7 +30,7 @@ app.post("/login", (req, res) => {
   const { username, password } = req.body;
   const select = db
     .prepare(
-      "SELECT uid,usertype from usertable where username=@username and password=@password"
+      "SELECT uid,usertype from usertable where username=@username and userpassword=@password"
     )
     .get({ username, password });
   if (select) {
