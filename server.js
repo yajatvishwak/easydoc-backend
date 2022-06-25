@@ -27,13 +27,15 @@ app.post("/signup", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const { username, password } = req.body;
+  let { username, password } = req.body;
+  //username = username.trim().toLowerCase();
+  password = password.trim().toLowerCase();
+  console.log(username, password);
   const select = db
-    .prepare(
-      "SELECT uid,usertype from usertable where username=@username and userpassword=@password"
-    )
-    .get({ username, password });
-  if (select) {
+    .prepare("SELECT * from usertable WHERE username=@username")
+    .get({ username });
+  console.log(select);
+  if (select && select.userpassword.trim().toLowerCase() === password) {
     res.send({ message: "ok", uid: select.uid, usertype: select.usertype });
   } else {
     res.send({ message: "notok" });
