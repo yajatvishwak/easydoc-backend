@@ -2,6 +2,8 @@ const express = require("express");
 const morgan = require("morgan");
 const app = express();
 const cors = require("cors");
+const shortid = require("shortid");
+
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
@@ -12,11 +14,51 @@ app.get("/", (req, res) => {
 
 // todo: create login signup
 
+app.post("/signup", (req, res) => {
+  const { username, password, usertype } = req.body;
+  const uid = shortid.generate();
+  const insert = db
+    .prepare(
+      "INSERT INTO usertable (uid,username, userpassword, usertype) VALUES (@uid,@username, @userpassword, @usertype)"
+    )
+    .run({ username, userpassword: password, usertype, uid });
+
+  res.send({ message: "ok", uid: uid, usertype: usertype });
+});
+
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  const select = db
+    .prepare(
+      "SELECT uid,usertype from usertable where username=@username and password=@password"
+    )
+    .get({ username, password });
+  if (select) {
+    res.send({ message: "ok", uid: select.uid, usertype: select.usertype });
+  } else {
+    res.send({ message: "notok" });
+  }
+});
+app.post("/updatemed", (req, res) => {
+  const { med, uid } = req.body;
+  db.prepare("UPDATE usertable set med=@med where uid=@uid").run({
+    med,
+    uid,
+  });
+  res.send({ message: "ok" });
+});
+app.get("/getpatient/:uid", (req, res) => {
+  const insert = db
+    .prepare("SELECT * from usertable where uid=@uid")
+    .get({ uid: req.params.uid });
+  res.send({ message: "ok", payload: insert });
+});
 app.post("/createEmergency", (req, res) => {
   const { uid, cord } = req.body;
   const insert = db
     .prepare("INSERT INTO emergency (uid, cord) VALUES (@uid, @cord)")
     .run({ uid, cord });
+
   res.send({ message: "ok" });
 });
 
